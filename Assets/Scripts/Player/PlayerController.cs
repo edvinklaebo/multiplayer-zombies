@@ -1,4 +1,5 @@
 using Fusion;
+using MultiplayerZombies.Core;
 using UnityEngine;
 
 namespace MultiplayerZombies.Player
@@ -66,6 +67,17 @@ namespace MultiplayerZombies.Player
             {
                 RecentMovementMagnitude = input.Move.magnitude;
             }
+        }
+
+        public override void Spawned()
+        {
+            GameManager.RegisterPlayerController(this);
+        }
+
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            GameManager.UnregisterPlayerController(this);
+            base.Despawned(runner, hasState);
         }
     }
 }

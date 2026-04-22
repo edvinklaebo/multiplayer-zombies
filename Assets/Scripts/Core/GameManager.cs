@@ -18,6 +18,7 @@ namespace MultiplayerZombies.Core
         public static GameManager Instance { get; private set; }
 
         private readonly HashSet<PlayerHealth> _players = new();
+        private readonly Dictionary<PlayerRef, PlayerController> _playerControllers = new();
 
         private void Awake()
         {
@@ -26,6 +27,8 @@ namespace MultiplayerZombies.Core
 
         public override void Spawned()
         {
+            CacheExistingPlayers();
+
             if (Object.HasStateAuthority)
             {
                 State = GameState.Lobby;
@@ -111,22 +114,32 @@ namespace MultiplayerZombies.Core
         public static bool TryGetPlayerController(PlayerRef playerRef, out PlayerController controller)
         {
             controller = null;
-            if (playerRef == PlayerRef.None)
+            if (playerRef == PlayerRef.None || Instance == null)
             {
                 return false;
             }
 
-            var players = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
-            foreach (var player in players)
+            return Instance._playerControllers.TryGetValue(playerRef, out controller) && controller != null;
+        }
+
+        public static void RegisterPlayerController(PlayerController controller)
+        {
+            if (Instance == null || controller == null || controller.Object == null)
             {
-                if (player != null && player.Object != null && player.Object.InputAuthority == playerRef)
-                {
-                    controller = player;
-                    return true;
-                }
+                return;
             }
 
-            return false;
+            Instance._playerControllers[controller.Object.InputAuthority] = controller;
+        }
+
+        public static void UnregisterPlayerController(PlayerController controller)
+        {
+            if (Instance == null || controller == null || controller.Object == null)
+            {
+                return;
+            }
+
+            Instance._playerControllers.Remove(controller.Object.InputAuthority);
         }
 
         private int AlivePlayers()
@@ -155,6 +168,27 @@ namespace MultiplayerZombies.Core
             Wave++;
             Debug.Log($"[Game] Spawning wave {Wave}");
             zombieSpawner?.SpawnWave(Wave);
+        }
+
+        private void CacheExistingPlayers()
+        {
+            _players.Clear();
+            foreach (var player in FindObjectsByType<PlayerHealth>(FindObjectsSortMode.None))
+            {
+                if (player != null)
+                {
+                    _players.Add(player);
+                }
+            }
+
+            _playerControllers.Clear();
+            foreach (var controller in FindObjectsByType<PlayerController>(FindObjectsSortMode.None))
+            {
+                if (controller != null && controller.Object != null)
+                {
+                    _playerControllers[controller.Object.InputAuthority] = controller;
+                }
+            }
         }
     }
 }

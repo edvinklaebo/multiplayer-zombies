@@ -20,6 +20,7 @@ namespace MultiplayerZombies.Enemies
         [SerializeField] private float proximityDistance = 8f;
 
         [Networked] public int Health { get; private set; }
+        public static int AliveCount { get; private set; }
 
         private float _nextAttackTime;
 
@@ -30,7 +31,18 @@ namespace MultiplayerZombies.Enemies
             if (Object.HasStateAuthority)
             {
                 Health = maxHealth;
+                AliveCount++;
             }
+        }
+
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            if (hasState)
+            {
+                AliveCount = Mathf.Max(0, AliveCount - 1);
+            }
+
+            base.Despawned(runner, hasState);
         }
 
         public override void FixedUpdateNetwork()

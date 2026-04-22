@@ -10,7 +10,7 @@ namespace MultiplayerZombies.Enemies
         [SerializeField] private int baseCount = 4;
         [SerializeField] private int maxAliveZombies = 30;
 
-        public int AliveZombieCount => FindObjectsByType<ZombieController>(FindObjectsSortMode.None).Length;
+        public int AliveZombieCount => ZombieController.AliveCount;
 
         public void SpawnWave(int wave)
         {

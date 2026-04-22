@@ -13,6 +13,7 @@ namespace MultiplayerZombies.UI
 
         private PlayerHealth _localHealth;
         private PlayerShooting _localShooting;
+        private float _nextLookupTime;
 
         private void Update()
         {
@@ -40,6 +41,13 @@ namespace MultiplayerZombies.UI
             {
                 return;
             }
+
+            if (Time.unscaledTime < _nextLookupTime)
+            {
+                return;
+            }
+
+            _nextLookupTime = Time.unscaledTime + 1f;
 
             var players = FindObjectsByType<PlayerHealth>(FindObjectsSortMode.None);
             foreach (var player in players)
