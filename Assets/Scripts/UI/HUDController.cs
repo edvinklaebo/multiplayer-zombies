@@ -47,7 +47,7 @@ namespace MultiplayerZombies.UI
                 return;
             }
 
-            _nextLookupTime = Time.unscaledTime + 1f;
+            _nextLookupTime = Time.unscaledTime + 3f;
 
             var players = FindObjectsByType<PlayerHealth>(FindObjectsSortMode.None);
             foreach (var player in players)
