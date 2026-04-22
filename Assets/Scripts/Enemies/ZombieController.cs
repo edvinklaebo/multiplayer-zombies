@@ -63,7 +63,7 @@ namespace MultiplayerZombies.Enemies
             }
 
             _nextAttackTime = now + 1f / Mathf.Max(1f, attacksPerSecond);
-            DamageSystem.ApplyDamage(target, attackDamage, new DamageContext(Object.InputAuthority));
+            DamageSystem.ApplyDamage(target, attackDamage, new DamageContext(PlayerRef.None));
         }
 
         public void TakeDamage(int amount, DamageContext context)

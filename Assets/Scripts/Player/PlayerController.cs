@@ -45,15 +45,15 @@ namespace MultiplayerZombies.Player
                 return;
             }
 
-            var moveInput = new Vector3(input.Move.x, 0f, input.Move.y);
-            var worldMove = moveInput.normalized * (moveSpeed * Runner.DeltaTime);
+            var moveInput = new Vector3(input.Move.x, 0f, input.Move.y) * (moveSpeed * Runner.DeltaTime);
+            var worldMove = transform.TransformDirection(moveInput);
             if (_characterController != null)
             {
-                _characterController.Move(transform.TransformDirection(worldMove));
+                _characterController.Move(worldMove);
             }
             else
             {
-                transform.position += transform.TransformDirection(worldMove);
+                transform.position += worldMove;
             }
 
             if (input.Look.x != 0f)
