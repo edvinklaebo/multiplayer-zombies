@@ -153,15 +153,16 @@ public class NetworkBootstrap : MonoBehaviour, INetworkRunnerCallbacks
     {
         await DisposeRunner();
 
-        if (_sceneManager == null)
+        if (_sceneManager != null)
         {
-            _sceneManager = GetComponent<NetworkSceneManagerDefault>();
-            _sceneManager ??= gameObject.AddComponent<NetworkSceneManagerDefault>();
+            Destroy(_sceneManager);
+            _sceneManager = null;
         }
 
+        _sceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>();
         _runner = gameObject.AddComponent<NetworkRunner>();
-        _runner.ProvideInput = true;
         _runner.AddCallbacks(this);
+        _runner.ProvideInput = true;
     }
 
     private async Task DisposeRunner()
