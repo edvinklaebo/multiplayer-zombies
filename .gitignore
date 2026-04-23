@@ -1,0 +1,77 @@
+# =========================
+# Unity generated folders
+# =========================
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+UserSettings/
+
+# Memory captures
+MemoryCaptures/
+
+# Asset import cache
+Library/
+
+# =========================
+# Visual Studio / Rider
+# =========================
+.vs/
+.idea/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Rider
+.idea/
+*.sln.iml
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Unity specific
+# =========================
+
+# Crash reports
+sysinfo.txt
+
+# Auto-generated VS files
+*.apk
+*.aab
+
+# Addressables build content
+Assets/AddressableAssetsData/*/*.bin*
+
+# =========================
+# Logs & Debug
+# =========================
+*.log
+
+# =========================
+# Packages (keep manifest)
+# =========================
+Packages/packages-lock.json
+
+# =========================
+# Ignored but IMPORTANT to keep:
+# =========================
+# Assets/
+# ProjectSettings/
+# Packages/manifest.json
