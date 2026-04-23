@@ -9,6 +9,7 @@ using UnityEngine.SceneManagement;
 public class NetworkBootstrap : MonoBehaviour, INetworkRunnerCallbacks
 {
     private NetworkRunner _runner;
+    private NetworkSceneManagerDefault _sceneManager;
     
     [SerializeField] private NetworkPrefabRef playerPrefab;
     [SerializeField] private TMPro.TextMeshProUGUI lobbyCodeText;
@@ -49,7 +50,7 @@ public class NetworkBootstrap : MonoBehaviour, INetworkRunnerCallbacks
 
         if (!success)
         {
-            ReloadScene();
+            Debug.LogWarning("Failed to join session. Please try another code.");
         }
     }
     
@@ -58,10 +59,9 @@ public class NetworkBootstrap : MonoBehaviour, INetworkRunnerCallbacks
         return code.Length == 5 && code.All(c => c is >= 'A' and <= 'Z');
     }
     
-    public async Task StartHost(string sessionName)
+    public async Task<bool> StartHost(string sessionName)
     {
-        _runner = gameObject.AddComponent<NetworkRunner>();
-        _runner.ProvideInput = true;
+        await CreateFreshRunner();
 
         var scene = SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex);
 
@@ -70,38 +70,32 @@ public class NetworkBootstrap : MonoBehaviour, INetworkRunnerCallbacks
             GameMode = GameMode.Host,
             SessionName = sessionName,
             Scene = scene,
-            SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
+            SceneManager = _sceneManager
         });
 
         if (!result.Ok)
         {
             Debug.LogError($"Failed to start: {result.ShutdownReason}");
-            return;
+            await DisposeRunner();
+            return false;
         }
         lobbyCanvas.SetActive(false);
+        return true;
     }
     
-    public async Task JoinGame(string sessionName)
+    public async Task<bool> JoinGame(string sessionName)
     {
         if (_isConnecting)
         {
             Debug.Log("Already connecting...");
-            return;
+            return false;
         }
 
         _isConnecting = true;
 
         try
         {
-            if (_runner != null)
-            {
-                await _runner.Shutdown();
-                Destroy(_runner);
-                _runner = null;
-            }
-
-            _runner = gameObject.AddComponent<NetworkRunner>();
-            _runner.ProvideInput = true;
+            await CreateFreshRunner();
 
             var scene = SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex);
 
@@ -110,11 +104,18 @@ public class NetworkBootstrap : MonoBehaviour, INetworkRunnerCallbacks
                 GameMode = GameMode.Client,
                 SessionName = sessionName,
                 Scene = scene,
-                SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
+                SceneManager = _sceneManager
             });
-            
-            if(result.Ok)
-                lobbyCanvas.SetActive(false);
+
+            if (!result.Ok)
+            {
+                Debug.LogWarning($"Join failed: {result.ShutdownReason}");
+                await DisposeRunner();
+                return false;
+            }
+
+            lobbyCanvas.SetActive(false);
+            return true;
         }
         finally
         {
@@ -129,14 +130,13 @@ public class NetworkBootstrap : MonoBehaviour, INetworkRunnerCallbacks
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
     
-    private async Task<bool> RunWithLoading(Task task)
+    private async Task<bool> RunWithLoading(Task<bool> task)
     {
         loadingOverlay.SetActive(true);
 
         try
         {
-            await task;
-            return true;
+            return await task;
         }
         catch (Exception e)
         {
@@ -147,6 +147,40 @@ public class NetworkBootstrap : MonoBehaviour, INetworkRunnerCallbacks
         {
             loadingOverlay.SetActive(false);
         }
+    }
+
+    private async Task CreateFreshRunner()
+    {
+        await DisposeRunner();
+
+        if (_sceneManager != null)
+        {
+            Destroy(_sceneManager);
+            _sceneManager = null;
+        }
+
+        _sceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>();
+        _runner = gameObject.AddComponent<NetworkRunner>();
+        _runner.AddCallbacks(this);
+        _runner.ProvideInput = true;
+    }
+
+    private async Task DisposeRunner()
+    {
+        if (_runner == null)
+            return;
+
+        try
+        {
+            await _runner.Shutdown();
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"Runner shutdown threw exception: {e}");
+        }
+
+        Destroy(_runner);
+        _runner = null;
     }
     
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
